@@ -48,7 +48,8 @@ const App = () => {
                     <div className="resultCard">
                         <div>{data["name"]}</div>
                         <img className="logo" src={data["logo"]}></img>
-                        <Button variant="contained" sx={{ backgroundColor: '#228B56'}}>More info</Button>
+                        <div>Average Attendance : <strong>{Math.round(data["participants_num"]/data["hackathon_num"])}</strong></div>
+                        <div>Keywords : <strong>{data["keywords"].slice(0,2).map((e, index)=>(<> {e}{index!=1 && ", "}</>))}</strong></div>
                     </div>
                 )
             )}
@@ -71,7 +72,7 @@ const App = () => {
     React.useEffect(searchSponsors, []);
     
     React.useEffect(() => {
-        const lowercasedQuery = searchedResult.toLowerCase().split(",");
+        const lowercasedQuery = searchedResult.toLowerCase().split(",").map(element => element.trimStart())
         lowercasedQuery.forEach((query) => filterData(query));
         
 
