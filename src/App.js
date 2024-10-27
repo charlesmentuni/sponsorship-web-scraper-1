@@ -10,9 +10,12 @@ const App = () => {
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [displayResult, setDisplayResult] = React.useState(true); // Check to false for default
     
+    const [participantOption, setParticipantOption] = React.useState("")
+    const [onlineOption, setOnlineOption] = React.useState("")
+
     //const [json, setData]= React.useState(null);
     const [searchedResult, setSearchedResult] = React.useState("");
-    const [filteredData, setFilteredData] = React.useState(null);
+    const [filteredData, setFilteredData] = React.useState(json);
 
     const toggleAdvancedSearch = () => {
         setIsExpanded(!isExpanded);
@@ -39,6 +42,13 @@ const App = () => {
         .catch((error) => console.error('Error fetching data:', error)); */
         console.log(json);
     };
+    const handlParticipantSelectChange = (event) => {
+        setParticipantOption(event.target.value); // Update state with selected value
+    };
+
+    const handleOnlineSelectChange = (event) => {
+        setOnlineOption(event.target.value); // Update state with selected value
+    };
 
     const displayFilteredData = (i) => {
         return (
@@ -49,7 +59,7 @@ const App = () => {
                         <div>{data["name"]}</div>
                         <img className="logo" src={data["logo"]}></img>
                         <div>Average Attendance : <strong>{Math.round(data["participants_num"]/data["hackathon_num"])}</strong></div>
-                        <div>Keywords : <strong>{data["keywords"].slice(0,2).map((e, index)=>(<> {e}{index!=1 && ", "}</>))}</strong></div>
+                        <div>Keywords : <strong>{data["keywords"].slice(0,2).map((e, index)=>(<> {e}{index!==1 && ", "}</>))}</strong></div>
                     </div>
                 )
             )}
@@ -59,11 +69,15 @@ const App = () => {
     }
     const filterData = (lowercasedQuery) => {
         
+        
         const filtered = json.filter(item => 
-            item['name'].toLowerCase().includes(lowercasedQuery) ||
-            item['keywords'].some(keyword => keyword.toLowerCase().includes(lowercasedQuery)) ||
-            item['locations'].some(location => location.toLowerCase().includes(lowercasedQuery)) ||
-            item['participants_num']/item['hackathon_num'] <= parseInt(lowercasedQuery)+parseInt(lowercasedQuery)*0.5
+            lowercasedQuery.every((item1)=> 
+                item['name'].toLowerCase().includes(item1) ||
+                item['keywords'].some(keyword => keyword.toLowerCase().includes(item1)) ||
+                item['locations'].some(location => location.toLowerCase().includes(item1)) ||
+                item['participants_num']/item['hackathon_num'] <= parseInt(item1)+parseInt(item1)*0.5
+            )
+            
         );
         setFilteredData(filtered);
         console.log(filtered);
@@ -72,11 +86,13 @@ const App = () => {
     React.useEffect(searchSponsors, []);
     
     React.useEffect(() => {
-        const lowercasedQuery = searchedResult.toLowerCase().split(",").map(element => element.trimStart())
-        lowercasedQuery.forEach((query) => filterData(query));
+        const result = searchedResult + participantOption;
+        const lowercasedQuery = result.toLowerCase().split(",").map(element => element.trimStart())
+        filterData(lowercasedQuery);
         
 
-    }, [searchedResult]);
+    }, [searchedResult, participantOption]);
+
     return (
         <div className="App">
             <Header />
@@ -124,20 +140,21 @@ const App = () => {
                         <>
                             <div className="optionGroup">
                                 <label htmlFor="number">Number of attendees</label>
-                                <select name="number" id="number">
-                                    <option>0 - 50</option>
-                                    <option>50 - 100</option>
-                                    <option>100 - 1000</option>
-                                    <option>1000+</option>
+                                <select name="number" onChange={handlParticipantSelectChange} id="number">
+                                    <option value=",">None</option>
+                                    <option value=",25">0 - 50</option>
+                                    <option value=",75">50 - 100</option>
+                                    <option value=",500">100 - 1000</option>
+                                    <option value =",10000">1000+</option>
 
                                 </select>
                             </div>
 
                             <div className="optionGroup">
                                 <label htmlFor="format">In-person/online</label>
-                                <select name="format" id="format">
-                                    <option>In-Person</option>
-                                    <option>Online</option>
+                                <select name="format" id="format" onChange={handleOnlineSelectChange}>
+                                    <option value="">In-Person</option>
+                                    <option value="online" >Online</option>
                                 </select>
                             </div>
 
